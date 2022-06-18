@@ -84,7 +84,7 @@ def handle_message(event):
             judge_message=TextSendMessage(text=message)
             messages.append(judge_message)
             next_idx=0
-            """
+            
             for i,hint in enumerate(hints):
                 if(math.isnan(hint)):
                     pass
@@ -99,10 +99,11 @@ def handle_message(event):
                     #update data
                     df.loc[user_idx,f"hint{next_idx+1}"]=math.nan
                     df.to_csv('cache.csv', index=False)
+                    break
             else:  #all hints are nan
                 message=f"答えは{ans}でした！"
                 messages.append(TextSendMessage(text=message))
-            """
+            
 
     else:  #select question
         if(event.message.text=="クイズ"):

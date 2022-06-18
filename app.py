@@ -90,11 +90,11 @@ def handle_message(event):
     else:  #select question
         message=""
         if(event.message.text=="クイズ"):
-            message="問題: "
+            message="問題:\n"
             #message="ちょっと待ってて！"
             #q,hints=quiz.generate_quiz("織田信長")
             path=os.getcwd()
-            with open(f"{path}/quiz_data.csv","r") as f:
+            with open(f"quiz_data.csv","r") as f:
                 reader = csv.reader(f)
                 list_reader=list(reader)
                 #idx=random.randint(0,len(list_reader))  #csvの1行目に見出しをつける場合変更が必要

@@ -61,11 +61,11 @@ def handle_message(event):
     
     message=""
     if(event.message.text=="クイズ"):
-        #message="ちょっと待ってて！"
-        q,hints=quiz.generate_quiz("織田信長")
-        message+=q+":"
-        for hint in hints:
-            message+=hint+","
+        message="ちょっと待ってて！"
+        #q,hints=quiz.generate_quiz("織田信長")
+        #message+=q+":"
+        #for hint in hints:
+        #    message+=hint+","
 
     else:
         message="「クイズ」と入力してね！"

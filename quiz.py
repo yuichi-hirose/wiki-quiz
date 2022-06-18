@@ -92,3 +92,7 @@ def generate_quiz(title):
     print(sorted_dict)
     hints=np.array(sorted_dict)[:,0]
     return title,list(hints[:5])
+
+if __name__ == "__main__":
+    title,hints=generate_quiz("織田信長")
+    print(title,hints)

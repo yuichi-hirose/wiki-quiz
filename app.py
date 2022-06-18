@@ -8,7 +8,7 @@ from linebot.exceptions import (
     InvalidSignatureError
 )
 from linebot.models import (
-    FollowEvent, MessageEvent, TextMessage, TextSendMessage, ImageMessage, ImageSendMessage, TemplateSendMessage, ButtonsTemplate, PostbackTemplateAction, MessageTemplateAction, URITemplateAction
+     MessageAction,FollowEvent, MessageEvent, TextMessage, TextSendMessage, ImageMessage, ImageSendMessage, TemplateSendMessage, ButtonsTemplate, PostbackTemplateAction, MessageTemplateAction, URITemplateAction
 )
 import os
 
@@ -44,6 +44,21 @@ def callback():
 # MessageEvent
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
+    profile = line_bot_api.get_profile(event.source.user_id)
+    status_msg = profile.status_message
+    if status_msg != "None":
+        # LINEに登録されているstatus_messageが空の場合は、"なし"という文字列を代わりの値とする
+        status_msg = "なし"
+    messages = TemplateSendMessage(alt_text="Buttons template",
+                                    template=ButtonsTemplate(
+                                    thumbnail_image_url=profile.picture_url,
+                                   title=profile.display_name,
+                                   text=f"User Id: {profile.user_id[:5]}...\n"
+                                        f"Status Message: {status_msg}",
+                                   actions=[MessageAction(label="成功", text="次は何を実装しましょうか？")]))
+
+    line_bot_api.reply_message(event.reply_token, messages=messages)
+    """
     message=""
     if(event.message.text=="クイズ"):
         message="ちょっと待ってて！"
@@ -51,12 +66,13 @@ def handle_message(event):
         message="「クイズ」と入力してね！"
     line_bot_api.reply_message(
         event.reply_token,
-        TextSendMessage(text=message)
+        TextSendMessage(text=)
     )
     line_bot_api.reply_message(
         event.reply_token,
         TextSendMessage(text=message)
     )
+    """
 
 if __name__ == "__main__":
     port = int(os.getenv("PORT"))

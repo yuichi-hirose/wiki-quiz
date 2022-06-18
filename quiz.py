@@ -12,6 +12,7 @@ def generate_quiz(title):
     wikipedia.set_lang("jp")
     #random.seed(0)
     #title="豊臣秀吉"
+    return "織田信長",["安土桃山時代", "前田利長", "滝川一益", "第一次木津川口の戦い","北畠氏"]
     b=time.time()
     page=wikipedia.WikipediaPage(title=title)
     max_links=1000

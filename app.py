@@ -14,6 +14,8 @@ import os
 import quiz
 import csv
 import random
+import pandas as pd
+import math
 
 # 軽量なウェブアプリケーションフレームワーク:Flask
 app = Flask(__name__)
@@ -63,21 +65,18 @@ def handle_message(event):
     """
     userid=profile.user_id
     answering=False
-    with open("cache.csv","r") as f:
-        reader = csv.reader(f)
-        for row in reader:
-            message=str(row)
-            line_bot_api.reply_message(
-                event.reply_token,
-                TextSendMessage(text=message)
-            )
-            return
-            if(row[0]==userid):
-                ans=row[1]
-                hints=row[2:]
-                answering=True
-                break
+
+    df = pd.read_csv("cache.csv")
+    user_data=df[df['userid'] ==userid]
+    if(len(user_data)>0):
+        answering=True
+        question=user_data.values.tolist()[0]
+        ans=question[1]
+        hints=[question[2:]]
+    else:
+        pass  #answering=False
     
+
     if(answering): #judge
         messages=[]
         if(event.message.text==ans):
@@ -88,12 +87,31 @@ def handle_message(event):
             message="不正解！"
             judge_message=TextSendMessage(text=message)
             messages.append(judge_message)
-            #next_hint=
+            next_idx=0
+            """
+            for i,hint in enumerate(hints):
+                if(math.isnan(hint)):
+                    pass
+                else:
+                    next_hint=hint
+                    next_idx=i
 
+                    message=f"次のヒントは\n{next_hint}"
+                    hint_message=TextSendMessage(text=message)
+                    messages.append(hint_message)
+
+                    #update data
+                    df.loc[user_data.index[0],f"hint{next_idx+1}"]=math.nan
+                    df.to_csv('cache.csv', index=False)
+            else:  #all hints are nan
+                message=f"答えは{ans}でした！"
+                messages.append(TextSendMessage(text=message))
+            """
+                
     else:  #select question
         messages=[]
         if(event.message.text=="クイズ"):
-            message1="問題:"
+            message1="問題"
             messages.append(TextSendMessage(text=message1))
             #message="ちょっと待ってて！"
             #q,hints=quiz.generate_quiz("織田信長")
@@ -104,7 +122,7 @@ def handle_message(event):
                 idx=0
                 question=list_reader[idx]
             
-            message2="ヒント1: "+question[1]
+            message2="最初のヒントは\n"+question[1]
             messages.append(TextSendMessage(text=message2))
 
             with open("cache.csv","a") as f:

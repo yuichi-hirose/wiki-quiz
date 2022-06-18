@@ -9,3 +9,4 @@ line-bot-sdk==1.8.0
 wikipedia==1.4.0
 numpy==1.21.6
 requests==2.22.0
+pandas==1.4.2

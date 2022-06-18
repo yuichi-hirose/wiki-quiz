@@ -117,9 +117,8 @@ def handle_message(event):
             #q,hints=quiz.generate_quiz("織田信長")
             with open("quiz_data.csv","r") as f:
                 reader = csv.reader(f)
-                list_reader=list(reader)
-                #idx=random.randint(0,len(list_reader))  #csvの1行目に見出しをつける場合変更が必要
-                idx=0
+                list_reader=list(reader[1:])
+                idx=random.randint(0,len(list_reader))
                 question=list_reader[idx]
             
             message2="最初のヒントは\n"+question[1]

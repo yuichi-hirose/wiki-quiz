@@ -84,9 +84,14 @@ def handle_message(event):
             judge_message=TextSendMessage(text=message)
             messages.append(judge_message)
             next_idx=0
-            
+
             for i,hint in enumerate(hints):
-                if(math.isnan(hint)):
+                isnan=False
+                try:
+                    isnan=math.isnan(hint)
+                except ValueError:  #文字列の場合
+                    pass
+                if(isnan):
                     pass
                 else:
                     next_hint=hint
@@ -109,7 +114,6 @@ def handle_message(event):
         if(event.message.text=="クイズ"):
             message1="問題"
             messages.append(TextSendMessage(text=message1))
-            #message="ちょっと待ってて！"
             #q,hints=quiz.generate_quiz("織田信長")
             with open("quiz_data.csv","r") as f:
                 reader = csv.reader(f)
@@ -127,7 +131,7 @@ def handle_message(event):
             
 
         else:
-            message=f"受け取った入力は{event.message.text}\n"
+            message=f"受け取った入力は「{event.message.text}」\n"
             message+="「クイズ」と入力してね！"
             messages.append(TextSendMessage(text=message))
     

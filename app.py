@@ -88,7 +88,8 @@ def handle_message(event):
             for i,hint in enumerate(hints):
                 isnan=False
                 try:
-                    isnan=math.isnan(hint)
+                    fhint=float(hint)
+                    isnan=math.isnan(fhint)
                 except ValueError:  #文字列の場合
                     pass
                 if(isnan):
@@ -108,6 +109,8 @@ def handle_message(event):
             else:  #all hints are nan
                 message=f"答えは{ans}でした！"
                 messages.append(TextSendMessage(text=message))
+                df=df.drop(user_idx)
+                df.to_csv('cache.csv', index=False)
             
 
     else:  #select question

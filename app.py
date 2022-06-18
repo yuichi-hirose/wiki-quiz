@@ -124,12 +124,12 @@ def handle_message(event):
             #    idx=random.randint(0,len(list_reader)-1)
             #    question=list_reader[idx]
             
-            message2="最初のヒントは\n"+question[1]
+            message2="最初のヒントは\n"+hints[0]
             messages.append(TextSendMessage(text=message2))
 
             with open("cache.csv","a") as f:
                 writer = csv.writer(f)
-                to_write=[userid,q]+hints
+                to_write=[userid,q]+hints[1:]
                 writer.writerow(to_write)
             
 

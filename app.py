@@ -49,7 +49,7 @@ def handle_message(event):
     if status_msg != "None":
         # LINEに登録されているstatus_messageが空の場合は、"なし"という文字列を代わりの値とする
         status_msg = "なし"
-    messages = TemplateSendMessage(alt_text="Buttons template",
+    status_message = TemplateSendMessage(alt_text="Buttons template",
                                     template=ButtonsTemplate(
                                     thumbnail_image_url=profile.picture_url,
                                    title=profile.display_name,
@@ -57,22 +57,19 @@ def handle_message(event):
                                         f"Status Message: {status_msg}",
                                    actions=[MessageAction(label="成功", text="次は何を実装しましょうか？")]))
 
-    line_bot_api.reply_message(event.reply_token, messages=messages)
-    """
+    
     message=""
     if(event.message.text=="クイズ"):
         message="ちょっと待ってて！"
     else:
         message="「クイズ」と入力してね！"
+    
+    quiz_message=TextSendMessage(text=message)
     line_bot_api.reply_message(
         event.reply_token,
-        TextSendMessage(text=)
+        [status_message,quiz_message]
     )
-    line_bot_api.reply_message(
-        event.reply_token,
-        TextSendMessage(text=message)
-    )
-    """
+    
 
 if __name__ == "__main__":
     port = int(os.getenv("PORT"))

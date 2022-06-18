@@ -11,7 +11,7 @@ from linebot.models import (
      MessageAction,FollowEvent, MessageEvent, TextMessage, TextSendMessage, ImageMessage, ImageSendMessage, TemplateSendMessage, ButtonsTemplate, PostbackTemplateAction, MessageTemplateAction, URITemplateAction
 )
 import os
-from . import quiz
+#from . import quiz
 
 # 軽量なウェブアプリケーションフレームワーク:Flask
 app = Flask(__name__)

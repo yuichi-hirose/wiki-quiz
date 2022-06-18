@@ -136,6 +136,7 @@ def handle_message(event):
             messages
         )
     except Exception as e:
+        messages=[]
         message=str(e)
         messages.append(TextSendMessage(text=message))
         line_bot_api.reply_message(

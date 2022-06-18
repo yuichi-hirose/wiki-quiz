@@ -117,19 +117,19 @@ def handle_message(event):
         if(event.message.text=="クイズ"):
             message1="問題"
             messages.append(TextSendMessage(text=message1))
-            #q,hints=quiz.generate_quiz("織田信長")
-            with open("quiz_data.csv","r") as f:
-                reader = csv.reader(f)
-                list_reader=list(reader)[1:]
-                idx=random.randint(0,len(list_reader)-1)
-                question=list_reader[idx]
+            q,hints=quiz.generate_quiz("織田信長")
+            #with open("quiz_data.csv","r") as f:
+            #    reader = csv.reader(f)
+            #    list_reader=list(reader)[1:]
+            #    idx=random.randint(0,len(list_reader)-1)
+            #    question=list_reader[idx]
             
             message2="最初のヒントは\n"+question[1]
             messages.append(TextSendMessage(text=message2))
 
             with open("cache.csv","a") as f:
                 writer = csv.writer(f)
-                to_write=[userid,question[0]]+question[2:]
+                to_write=[userid,q]+hints
                 writer.writerow(to_write)
             
 

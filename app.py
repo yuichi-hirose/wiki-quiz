@@ -73,11 +73,11 @@ def handle_message(event):
 
     messages=[]
 
-    if(event.message.text=="status"):
-        message=userid+"\n"+answering
+    if("status" in event.message.text):
+        message=str(userid)+"\n"+str(answering)
         status_message=TextSendMessage(text=message)
         messages.append(status_message)
-        message=df.values.tolist()
+        message=str(df.values.tolist())
         list_message=TextSendMessage(text=message)
         messages.append(list_message)
     elif(answering): #judge

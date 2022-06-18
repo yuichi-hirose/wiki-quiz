@@ -66,6 +66,12 @@ def handle_message(event):
     with open("cache.csv","r") as f:
         reader = csv.reader(f)
         for row in reader:
+            message=str(row)
+            line_bot_api.reply_message(
+                event.reply_token,
+                TextSendMessage(text=message)
+            )
+            return
             if(row[0]==userid):
                 ans=row[1]
                 hints=row[2:]
@@ -83,40 +89,38 @@ def handle_message(event):
             judge_message=TextSendMessage(text=message)
             messages.append(judge_message)
             #next_hint=
-        line_bot_api.reply_message(
-            event.reply_token,
-            messages
-        )
+
     else:  #select question
-        message=""
+        messages=[]
         if(event.message.text=="クイズ"):
-            message="問題:\n"
+            message1="問題:"
+            messages.append(TextSendMessage(text=message1))
             #message="ちょっと待ってて！"
             #q,hints=quiz.generate_quiz("織田信長")
-            path=os.getcwd()
-            with open(f"quiz_data.csv","r") as f:
+            with open("quiz_data.csv","r") as f:
                 reader = csv.reader(f)
                 list_reader=list(reader)
                 #idx=random.randint(0,len(list_reader))  #csvの1行目に見出しをつける場合変更が必要
                 idx=0
                 question=list_reader[idx]
             
-            message+="ヒント1: "+question[1]
-            """
+            message2="ヒント1: "+question[1]
+            messages.append(TextSendMessage(text=message2))
+
             with open("cache.csv","a") as f:
                 writer = csv.writer(f)
                 to_write=[userid,question[0]]+question[2:]
                 writer.writerow(to_write)
-            """
+            
 
         else:
             message="「クイズ」と入力してね！"
+            messages.append(TextSendMessage(text=message))
     
-        quiz_message=TextSendMessage(text=message)
-        line_bot_api.reply_message(
-            event.reply_token,
-            quiz_message
-        )
+    line_bot_api.reply_message(
+        event.reply_token,
+        messages
+    )
     
 
 if __name__ == "__main__":

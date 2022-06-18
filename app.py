@@ -71,7 +71,15 @@ def handle_message(event):
     answering=len(user_data)>0
 
     messages=[]
-    if(answering): #judge
+
+    if(event.message.text=="status"):
+        message=answering
+        status_message=TextSendMessage(text=message)
+        messages.append(status_message)
+        message=df.values.tolist()
+        list_message=TextSendMessage(text=message)
+        messages.append(list_message)
+    elif(answering): #judge
         question=user_data.values.tolist()[0]
         ans=question[1]
         hints=question[2:]

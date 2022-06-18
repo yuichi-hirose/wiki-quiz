@@ -14,7 +14,7 @@ def generate_quiz(title):
     #title="豊臣秀吉"
     b=time.time()
     page=wikipedia.WikipediaPage(title=title)
-    max_links=10000
+    max_links=1000
     links=page.links
     url="https://jp.wikipedia.org/w/api.php"
     links_dict={}
@@ -86,7 +86,7 @@ def generate_quiz(title):
         #  print(bl['title'])
         print(time.time()-b)
         print("------------------------------")
-        if(len(links_dict)>=30):break
+        if(len(links_dict)>=5):break
     
     sorted_dict=sorted(links_dict.items(),key=lambda x:x[1],reverse=True)
     print(sorted_dict)

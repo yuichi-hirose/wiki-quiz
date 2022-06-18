@@ -46,13 +46,17 @@ def callback():
 def handle_message(event):
     message=""
     if(event.message.text=="クイズ"):
-        message="ちょっと待って！"
+        message="ちょっと待ってて！"
     else:
         message="「クイズ」と入力してね！"
     line_bot_api.reply_message(
         event.reply_token,
         TextSendMessage(text=message)
-     )
+    )
+    line_bot_api.reply_message(
+        event.reply_token,
+        TextSendMessage(text=message)
+    )
 
 if __name__ == "__main__":
     port = int(os.getenv("PORT"))

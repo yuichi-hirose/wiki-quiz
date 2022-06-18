@@ -68,27 +68,27 @@ def handle_message(event):
 
     df = pd.read_csv("cache.csv")
     user_data=df[df['userid'] ==userid]
-    if(len(user_data)>0):
-        answering=True
+    answering=len(user_data)>0
+
+    messages=[]
+    if(answering): #judge
         question=user_data.values.tolist()[0]
         ans=question[1]
-        hints=[question[2:]]
-    else:
-        pass  #answering=False
-    
-
-    if(answering): #judge
-        messages=[]
+        hints=question[2:]
+        user_idx=user_data.index[0]
         if(event.message.text==ans):
             message="正解！"
             judge_message=TextSendMessage(text=message)
             messages.append(judge_message)
+            #キャッシュを消去
+            df=df.drop(user_idx)
+            df.to_csv('cache.csv', index=False)
         else:
             message="不正解！"
             judge_message=TextSendMessage(text=message)
             messages.append(judge_message)
             next_idx=0
-            """
+            
             for i,hint in enumerate(hints):
                 if(math.isnan(hint)):
                     pass
@@ -101,15 +101,14 @@ def handle_message(event):
                     messages.append(hint_message)
 
                     #update data
-                    df.loc[user_data.index[0],f"hint{next_idx+1}"]=math.nan
+                    df.loc[user_idx,f"hint{next_idx+1}"]=math.nan
                     df.to_csv('cache.csv', index=False)
             else:  #all hints are nan
                 message=f"答えは{ans}でした！"
                 messages.append(TextSendMessage(text=message))
-            """
+            
                 
     else:  #select question
-        messages=[]
         if(event.message.text=="クイズ"):
             message1="問題"
             messages.append(TextSendMessage(text=message1))

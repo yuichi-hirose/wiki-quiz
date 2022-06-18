@@ -12,6 +12,8 @@ from linebot.models import (
 )
 import os
 import quiz
+import csv
+import random
 
 # 軽量なウェブアプリケーションフレームワーク:Flask
 app = Flask(__name__)
@@ -59,24 +61,58 @@ def handle_message(event):
                                         f"Status Message: {status_msg}",
                                    actions=[MessageAction(label="成功", text="次は何を実装しましょうか？")]))
     """
-    status_message=TextSendMessage(text=profile.user_id)
-    message=""
-    if(event.message.text=="クイズ"):
-        #message="ちょっと待ってて！"
-        #q,hints=quiz.generate_quiz("織田信長")
-        q=quiz.generate_quiz("織田信長")
-        message+=q
-        #for hint in hints:
-        #    message+=hint+","
-
-    else:
-        message="「クイズ」と入力してね！"
+    userid=profile.user_id
+    answering=False
+    with open("cache.csv","r") as f:
+        reader = csv.reader(f)
+        for row in reader:
+            if(row[0]==userid):
+                ans=row[1]
+                hints=row[2:]
+                answering=True
+                break
     
-    quiz_message=TextSendMessage(text=message)
-    line_bot_api.reply_message(
-        event.reply_token,
-        [status_message,quiz_message]
-    )
+    if(answering): #judge
+        messages=[]
+        if(event.message.text==ans):
+            message="正解！"
+            judge_message=TextSendMessage(text=message)
+            messages.append(judge_message)
+        else:
+            message="不正解！"
+            judge_message=TextSendMessage(text=message)
+            messages.append(judge_message)
+            #next_hint=
+        line_bot_api.reply_message(
+            event.reply_token,
+            messages
+        )
+    else:  #select question
+        message="問題: "
+        if(event.message.text=="クイズ"):
+            #message="ちょっと待ってて！"
+            #q,hints=quiz.generate_quiz("織田信長")
+            with open("quiz_data.csv","r") as f:
+                reader = csv.reader(f)
+                list_reader=list(reader)
+                idx=random.randint(0,len(list_reader))  #csvの1行目に見出しをつける場合変更が必要
+                question=list_reader[idx]
+            
+            message+="ヒント1: "+question[1]
+
+            with open("cache.csv","a") as f:
+                writer = csv.writer(f)
+                to_write=[userid,question[0]]+question[2:]
+                writer.writerow(to_write)
+
+        else:
+            message="「クイズ」と入力してね！"
+    
+        quiz_message=TextSendMessage(text=message)
+        line_bot_api.reply_message(
+            event.reply_token,
+            quiz_message
+        )
     
 
 if __name__ == "__main__":

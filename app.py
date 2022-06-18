@@ -126,7 +126,8 @@ def handle_message(event):
             
 
         else:
-            message="「クイズ」と入力してね！"
+            message=f"受け取った入力は{event.message.text}\n"
+            message+="「クイズ」と入力してね！"
             messages.append(TextSendMessage(text=message))
     
     line_bot_api.reply_message(

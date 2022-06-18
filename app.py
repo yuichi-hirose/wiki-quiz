@@ -73,7 +73,7 @@ def handle_message(event):
 
     messages=[]
 
-    if("status" in event.message.text):
+    if(event.message.text=="ステータス"):
         message=str(userid)+"\n"+str(answering)
         status_message=TextSendMessage(text=message)
         messages.append(status_message)

@@ -88,22 +88,26 @@ def handle_message(event):
             messages
         )
     else:  #select question
-        message="問題: "
+        message=""
         if(event.message.text=="クイズ"):
+            message="問題: "
             #message="ちょっと待ってて！"
             #q,hints=quiz.generate_quiz("織田信長")
-            with open("quiz_data.csv","r") as f:
+            path=os.getcwd()
+            with open(f"{path}/quiz_data.csv","r") as f:
                 reader = csv.reader(f)
                 list_reader=list(reader)
-                idx=random.randint(0,len(list_reader))  #csvの1行目に見出しをつける場合変更が必要
+                #idx=random.randint(0,len(list_reader))  #csvの1行目に見出しをつける場合変更が必要
+                idx=0
                 question=list_reader[idx]
             
             message+="ヒント1: "+question[1]
-
+            """
             with open("cache.csv","a") as f:
                 writer = csv.writer(f)
                 to_write=[userid,question[0]]+question[2:]
                 writer.writerow(to_write)
+            """
 
         else:
             message="「クイズ」と入力してね！"

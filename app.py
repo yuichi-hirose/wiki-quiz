@@ -49,7 +49,7 @@ def callback():
 # MessageEvent
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
-    profile = line_bot_api.get_profile(event.source.user_id)
+    #profile = line_bot_api.get_profile(event.source.user_id)
     """
     status_msg = profile.status_message
     if status_msg != "None":
@@ -63,7 +63,8 @@ def handle_message(event):
                                         f"Status Message: {status_msg}",
                                    actions=[MessageAction(label="成功", text="次は何を実装しましょうか？")]))
     """
-    userid=profile.user_id
+    #userid=profile.user_id
+    userid=event.source.user_id
     answering=False
 
     df = pd.read_csv("cache.csv")
@@ -73,7 +74,7 @@ def handle_message(event):
     messages=[]
 
     if(event.message.text=="status"):
-        message=answering
+        message=userid+"\n"+answering
         status_message=TextSendMessage(text=message)
         messages.append(status_message)
         message=df.values.tolist()
@@ -114,8 +115,7 @@ def handle_message(event):
             else:  #all hints are nan
                 message=f"答えは{ans}でした！"
                 messages.append(TextSendMessage(text=message))
-            
-                
+
     else:  #select question
         if(event.message.text=="クイズ"):
             message1="問題"

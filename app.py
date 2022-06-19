@@ -55,6 +55,7 @@ def quiz_to_user(event):
     cur = con.cursor()
     #df = pd.read_csv("cache.csv")
     #user_data=df[df['userid'] ==userid]
+
     user_sql=cur.execute(f"SELECT * FROM cache WHERE userid = '{userid}'")
     answering=False
     for u in user_sql:
@@ -87,7 +88,6 @@ def quiz_to_user(event):
             #キャッシュを消去
             cur.execute(f"DELETE FROM cache WHERE userid='{userid}'")
             con.commit()
-            con.close()
             #df=df.drop(user_idx)
             #df.to_csv('cache.csv', index=False)
         else:
@@ -109,14 +109,12 @@ def quiz_to_user(event):
                     
                     cur.execute(f"UPDATE cache SET hint{next_idx+1}=NULL WHERE userid='{userid}'")
                     con.commit()
-                    con.close()
                     break
             else:  #all hints are nan
                 message=f"答えは{ans}でした！"
                 messages.append(TextSendMessage(text=message))
                 cur.execute(f"DELETE FROM cache WHERE userid='{userid}'")
                 con.commit()
-                con.close()
     else:  #select question
         if(event.message.text=="クイズ"):
             message1="問題"
@@ -133,16 +131,18 @@ def quiz_to_user(event):
 
             cur.execute(f"INSERT INTO cache VALUES ('{userid}','{question[0]}','{question[2]}','{question[3]}','{question[4]}','{question[5]}')")
             con.commit()
-            con.close()
         else:
             message=f"受け取った入力は「{event.message.text}」\n"
             message+="「クイズ」と入力してね！"
             messages.append(TextSendMessage(text=message))
+    con.close()
     return messages
 
 def quiz_to_group(event):
     messages=[]
     userid=event.source.user_id
+    profile = line_bot_api.get_profile(event.source.user_id)
+    username=profile.display_name
     groupid=event.source.group_id
 
     con = sqlite3.connect('cache.db')
@@ -155,13 +155,74 @@ def quiz_to_group(event):
     status=0  #status: 0 ->no session held, 1->gathering 2->matching
     for s in session_sql:
         session_data=s  #tuple
-        status=s[1]
+        status=session_data[1]
 
     # answering=len(user_data)>0
 
     messages=[]
 
-    if(status==0):  #select question
+    if(status==2): #judge
+        pass
+        ans=user_data[1]
+        hints=user_data[2:]
+        if(event.message.text==ans):
+            message="正解！"
+            judge_message=TextSendMessage(text=message)
+            messages.append(judge_message)
+            #キャッシュを消去
+            cur.execute(f"DELETE FROM cache WHERE userid='{userid}'")
+            con.commit()
+            #df=df.drop(user_idx)
+            #df.to_csv('cache.csv', index=False)
+        else:
+            message="不正解！"
+            judge_message=TextSendMessage(text=message)
+            messages.append(judge_message)
+            next_idx=0
+
+            for i,hint in enumerate(hints):
+                if(hint is None):
+                    pass
+                else:
+                    next_hint=hint
+                    next_idx=i
+
+                    message=f"次のヒントは\n{next_hint}"
+                    hint_message=TextSendMessage(text=message)
+                    messages.append(hint_message)
+                    
+                    cur.execute(f"UPDATE cache SET hint{next_idx+1}=NULL WHERE userid='{userid}'")
+                    con.commit()
+                    break
+            else:  #all hints are nan
+                message=f"答えは{ans}でした！"
+                messages.append(TextSendMessage(text=message))
+                cur.execute(f"DELETE FROM cache WHERE userid='{userid}'")
+                con.commit()
+    elif(status==1):
+        #boshuu
+        if(event.message.text=="参加"):
+            cur.execute(f"insert into users values ('{groupid}','{userid}',5,NULL) on conflict (groupid, userid) do nothing")
+            con.commit()
+            message=f"{username}さんを追加しました！\nこれで全員の場合「終了」と送信してください"
+            messages.append(TextSendMessage(text=message))
+        elif(event.message.text=="終了"):  #set status to 2 and give hint
+            cur.execute(f"update session set status=2 where groupid='{groupid}'")
+            
+            message=f"参加募集を締め切りました！"
+            messages.append(TextSendMessage(text=message))
+            res_list=cur.execute(f"select hint1 from session where groupid='{groupid}'")
+            cur.execute(f"update session set hints=hints-1 where groupid='{groupid}'")
+            hint=""
+            for r in res_list:  #実際には一度しかループしないはず
+                hint=r[0]
+            message="最初のヒントは\n"+hint
+            messages.append(TextSendMessage(text=message))
+            con.commit()
+        else:
+            message=f"参加して！"
+            messages.append(TextSendMessage(text=message))
+    elif(status==0):  #select question
         if(event.message.text=="クイズ"):
             message1="クイズ大会！"
             messages.append(TextSendMessage(text=message1))
@@ -177,14 +238,13 @@ def quiz_to_group(event):
 
             cur.execute(f"INSERT INTO session VALUES ('{groupid}',1,5,'{question[0]}','{question[1]}','{question[2]}','{question[3]}','{question[4]}','{question[5]}')")
             con.commit()
-            con.close()
             message2="「参加」と送信してください！"
             messages.append(TextSendMessage(text=message2))
         else:
             message=f"受け取った入力は「{event.message.text}」\n"
             message+="「クイズ」と入力してね！"
             messages.append(TextSendMessage(text=message))
-
+    con.close()
     return messages
 
 

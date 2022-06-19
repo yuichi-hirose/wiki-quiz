@@ -142,6 +142,13 @@ def handle_message(event):
             cur.execute(f"INSERT INTO cache VALUES ('{userid}','{question[0]}','{question[2]}','{question[3]}','{question[4]}','{question[5]}')")
             con.commit()
             con.close()
+        elif("作問:" in event.message.text):
+            title=event.message.text.split(":")[1]
+            _,hints=quiz.generate_quiz(title)
+            message="ヒント:"
+            for hint in hints:
+                message+="\n"+hint
+            messages.append(TextSendMessage(text=message))
         else:
             message=f"受け取った入力は「{event.message.text}」\n"
             message+="「クイズ」と入力してね！"

@@ -19,6 +19,8 @@ import math
 import sqlite3
 import time
 
+import quizmenu
+
 # 軽量なウェブアプリケーションフレームワーク:Flask
 app = Flask(__name__)
 
@@ -30,6 +32,8 @@ LINE_CHANNEL_SECRET = os.environ["LINE_CHANNEL_SECRET"]
 
 line_bot_api = LineBotApi(LINE_CHANNEL_ACCESS_TOKEN)
 handler = WebhookHandler(LINE_CHANNEL_SECRET)
+
+result = quizmenu.initMenu(line_bot_api)
 
 @app.route("/callback", methods=['POST'])
 def callback():

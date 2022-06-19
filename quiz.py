@@ -1,3 +1,5 @@
+# 参考: https://zenn.dev/unemployed/articles/96ef729c7a091d
+
 from lib2to3.pgen2.token import BACKQUOTE
 import wikipedia
 
@@ -38,8 +40,23 @@ def check_link(l, title):
     flag_link = False
 
     print(f"link:{l}の検証を開始します")
+
+    # デバッグ
     if(l=="曖昧さ回避"):
         return
+    if("Template" in l):
+        return
+    if("m²" in l):
+        return
+    if("リスト" in l):
+        return
+    if("一覧" in l):
+        return
+    if("." in l):
+        return
+    if(":" in l):
+        return
+
     if(title in l):
         now_time = time.time()-b
         print(now_time)
@@ -80,7 +97,7 @@ def check_link(l, title):
         j=r.json()
         #print(j)
         backlinks+=j['query']['backlinks']
-        if(len(backlinks) >= 500):
+        if(len(backlinks) >= 500 and len(l)>2):
             flag_dict = True
 
         if(len(backlinks) >= Max_links):

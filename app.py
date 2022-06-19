@@ -8,22 +8,29 @@ from linebot.exceptions import (
     InvalidSignatureError
 )
 from linebot.models import (
-     MessageAction,FollowEvent, MessageEvent, TextMessage, TextSendMessage, ImageMessage, ImageSendMessage, TemplateSendMessage, ButtonsTemplate, PostbackTemplateAction, MessageTemplateAction, URITemplateAction
+     MessageAction,FollowEvent, MessageEvent, TextMessage, TextSendMessage, ImageMessage, ImageSendMessage, TemplateSendMessage, ButtonsTemplate, PostbackTemplateAction, MessageTemplateAction, URITemplateAction, RichMenu, RichMenuArea, RichMenuBounds, RichMenuSize
 )
 import os
-#from . import quiz
+import quiz
+import csv
+import random
+import pandas as pd
+import math
+import quizmenu
 
 # 軽量なウェブアプリケーションフレームワーク:Flask
 app = Flask(__name__)
 
 
 #環境変数からLINE Access Tokenを設定
-LINE_CHANNEL_ACCESS_TOKEN = os.environ["LINE_CHANNEL_ACCESS_TOKEN"]
+LINE_CHANNEL_ACCESS_TOKEN = os.environ["YOUR_CHANNEL_ACCESS_TOKEN"]
 #環境変数からLINE Channel Secretを設定
-LINE_CHANNEL_SECRET = os.environ["LINE_CHANNEL_SECRET"]
+LINE_CHANNEL_SECRET = os.environ["YOUR_CHANNEL_SECRET"]
 
 line_bot_api = LineBotApi(LINE_CHANNEL_ACCESS_TOKEN)
 handler = WebhookHandler(LINE_CHANNEL_SECRET)
+
+result = quizmenu.initMenu(line_bot_api)
 
 @app.route("/callback", methods=['POST'])
 def callback():
@@ -40,40 +47,103 @@ def callback():
     except InvalidSignatureError:
         abort(400)
 
-    return 'OK'
+    return '200 OK'
 
 # MessageEvent
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
-    profile = line_bot_api.get_profile(event.source.user_id)
-    status_msg = profile.status_message
-    if status_msg != "None":
-        # LINEに登録されているstatus_messageが空の場合は、"なし"という文字列を代わりの値とする
-        status_msg = "なし"
-    status_message = TemplateSendMessage(alt_text="Buttons template",
-                                    template=ButtonsTemplate(
-                                    thumbnail_image_url=profile.picture_url,
-                                   title=profile.display_name,
-                                   text=f"User Id: {profile.user_id[:5]}...\n"
-                                        f"Status Message: {status_msg}",
-                                   actions=[MessageAction(label="成功", text="次は何を実装しましょうか？")]))
+    #profile = line_bot_api.get_profile(event.source.user_id)
+    #userid=profile.user_id
+    userid=event.source.user_id
+    answering=False
 
-    
-    message=""
-    if(event.message.text=="クイズ"):
-        message="ちょっと待ってて！"
-        #q,hints=quiz.generate_quiz("織田信長")
-        #message+=q+":"
-        #for hint in hints:
-        #    message+=hint+","
+    df = pd.read_csv("cache.csv")
+    user_data=df[df['userid'] ==userid]
+    answering=len(user_data)>0
 
-    else:
-        message="「クイズ」と入力してね！"
+    messages=[]
+
+    if(event.message.text=="ステータス"):
+        message=str(userid)+"\n"+str(answering)
+        status_message=TextSendMessage(text=message)
+        messages.append(status_message)
+        message=str(df.values.tolist())
+        list_message=TextSendMessage(text=message)
+        messages.append(list_message)
+    elif(answering): #judge
+        question=user_data.values.tolist()[0]
+        ans=question[1]
+        hints=question[2:]
+        user_idx=user_data.index[0]
+        if(event.message.text==ans):
+            message="正解！"
+            judge_message=TextSendMessage(text=message)
+            messages.append(judge_message)
+            #キャッシュを消去
+            df=df.drop(user_idx)
+            df.to_csv('cache.csv', index=False)
+        else:
+            message="不正解！"
+            judge_message=TextSendMessage(text=message)
+            messages.append(judge_message)
+            next_idx=0
+
+            for i,hint in enumerate(hints):
+                isnan=False
+                try:
+                    fhint=float(hint)
+                    isnan=math.isnan(fhint)
+                except ValueError:  #文字列の場合
+                    pass
+                if(isnan):
+                    pass
+                else:
+                    next_hint=hint
+                    next_idx=i
+
+                    message=f"次のヒントは\n{next_hint}"
+                    hint_message=TextSendMessage(text=message)
+                    messages.append(hint_message)
+
+                    #update data
+                    df.loc[user_idx,f"hint{next_idx+1}"]=math.nan
+                    df.to_csv('cache.csv', index=False)
+                    break
+            else:  #all hints are nan
+                message=f"答えは{ans}でした！"
+                messages.append(TextSendMessage(text=message))
+                df=df.drop(user_idx)
+                df.to_csv('cache.csv', index=False)
+            
+
+    else:  #select question
+        if(event.message.text=="クイズ"):
+            message1="問題"
+            messages.append(TextSendMessage(text=message1))
+            #q,hints=quiz.generate_quiz("織田信長")
+            with open("quiz_data.csv","r") as f:
+                reader = csv.reader(f)
+                list_reader=list(reader)[1:]
+                idx=random.randint(0,len(list_reader)-1)
+                question=list_reader[idx]
+            
+            message2="最初のヒントは\n"+question[1]
+            messages.append(TextSendMessage(text=message2))
+
+            with open("cache.csv","a") as f:
+                writer = csv.writer(f)
+                to_write=[userid,question[0]]+question[2:]
+                writer.writerow(to_write)
+            
+
+        else:
+            message=f"受け取った入力は「{event.message.text}」\n"
+            message+="「クイズ」と入力してね！"
+            messages.append(TextSendMessage(text=message))
     
-    quiz_message=TextSendMessage(text=message)
     line_bot_api.reply_message(
         event.reply_token,
-        [status_message,quiz_message]
+        messages
     )
     
 

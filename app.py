@@ -16,6 +16,7 @@ import csv
 import random
 import pandas as pd
 import math
+import sqlite3
 
 # 軽量なウェブアプリケーションフレームワーク:Flask
 app = Flask(__name__)
@@ -52,11 +53,19 @@ def handle_message(event):
     #profile = line_bot_api.get_profile(event.source.user_id)
     #userid=profile.user_id
     userid=event.source.user_id
-    answering=False
+    
 
-    df = pd.read_csv("cache.csv")
-    user_data=df[df['userid'] ==userid]
-    answering=len(user_data)>0
+    con = sqlite3.connect('cache.db')
+    cur = con.cursor()
+    #df = pd.read_csv("cache.csv")
+    #user_data=df[df['userid'] ==userid]
+    user_sql=cur.execute(f"SELECT * FROM cache WHERE userid = {userid}")
+    answering=False
+    for u in user_sql:
+        user_data=u
+        answering=True
+
+    # answering=len(user_data)>0
 
     messages=[]
 
@@ -131,8 +140,9 @@ def handle_message(event):
                 writer = csv.writer(f)
                 to_write=[userid,question[0]]+question[2:]
                 writer.writerow(to_write)
-            
-
+            cur.execute(f"INSERT INTO cache VALUES ({userid},{question[0]},{question[2]},{question[3]},{question[4]},{question[5]},{question[6]})")
+            con.commit()
+            con.close()
         else:
             message=f"受け取った入力は「{event.message.text}」\n"
             message+="「クイズ」と入力してね！"

@@ -157,6 +157,7 @@ def check_link_thread(l, title):
 
 def generate_quiz(title):
     global links_dict
+    links_dict={}
 
     async def f(l,title):
         res = await loop.run_in_executor(None, check_link_thread, l, title)

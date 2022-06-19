@@ -25,9 +25,8 @@ def initMenu(line_bot_api):
 
     richMenuId = line_bot_api.create_rich_menu(rich_menu=rich_menu_to_create)
 
-    image = 'quizswitch.png'
     #path = '/Users/suguruiwasaki/Documents/line_wiki/image/quizswitch.png'
-    with open("image/quizswitch.png", 'rb') as f:
+    with open("image/wikiQuizBot.png", 'rb') as f:
         line_bot_api.set_rich_menu_image(richMenuId, "image/png", f)
 
     # set the default rich menu

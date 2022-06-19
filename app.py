@@ -76,7 +76,7 @@ def handle_message(event):
         all_data=cur.execute(f"SELECT * FROM cache")
         message=""
         for d in all_data:
-            message+=d+"\n"
+            message+=str(d)+"\n"
         
         list_message=TextSendMessage(text=message)
         messages.append(list_message)
@@ -137,7 +137,7 @@ def handle_message(event):
             message2="最初のヒントは\n"+question[1]
             messages.append(TextSendMessage(text=message2))
 
-            cur.execute(f"INSERT INTO cache VALUES ('{userid}','{question[0]}','{question[1]}','{question[2]}','{question[3]}','{question[4]}')")
+            cur.execute(f"INSERT INTO cache VALUES ('{userid}','{question[0]}','{question[2]}','{question[3]}','{question[4]}','{question[5]}')")
             con.commit()
             con.close()
         else:

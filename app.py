@@ -51,7 +51,7 @@ def callback():
 # MessageEvent
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
-    b=time.time()
+    #b=time.time()
     #profile = line_bot_api.get_profile(event.source.user_id)
     #userid=profile.user_id
     userid=event.source.user_id
@@ -147,7 +147,7 @@ def handle_message(event):
             message+="「クイズ」と入力してね！"
             messages.append(TextSendMessage(text=message))
     
-    messages.append(TextSendMessage(text=str(time.time()-b)))
+    #messages.append(TextSendMessage(text=str(time.time()-b)))
     line_bot_api.reply_message(
         event.reply_token,
         messages

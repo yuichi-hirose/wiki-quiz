@@ -8,9 +8,16 @@ if(__name__=="__main__"):
     cur.execute('''CREATE TABLE cache
                 (userid text primary key, ans text, hint1 text, hint2 text, hint3 text, hint4 text)''')
 
+    cur.execute('''CREATE TABLE session
+                (groupid text primary key, status text,  hints integer, ans text, hint1 text, hint2 text, hint3 text, hint4 text)''')
+
+    cur.execute('''CREATE TABLE users
+                (groupid text, userid text, answers integer, ans text)''')
+
     # Save (commit) the changes
     con.commit()
 
     # We can also close the connection if we are done with it.
     # Just be sure any changes have been committed or they will be lost.
     con.close()
+

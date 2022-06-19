@@ -57,6 +57,7 @@ def quiz_to_user(event):
     #user_data=df[df['userid'] ==userid]
 
     user_sql=cur.execute(f"SELECT * FROM cache WHERE userid = '{userid}'")
+    con.commit()
     answering=False
     for u in user_sql:
         user_data=u  #tuple
@@ -152,6 +153,8 @@ def quiz_to_group(event):
     #user_data=df[df['userid'] ==userid]
 
     user_sql=cur.execute(f"SELECT * FROM session WHERE groupid = '{groupid}'")
+    con.commit()
+
     answering=False
     for u in user_sql:
         user_data=u  #tuple
@@ -162,7 +165,8 @@ def quiz_to_group(event):
         ans=user_data[1]
         hints=user_data[2:]
         if(event.message.text==ans):
-            message=f"{username}さん正解！"
+            #message=f"{username}さん正解！"
+            message=f"正解！"
             judge_message=TextSendMessage(text=message)
             messages.append(judge_message)
             #キャッシュを消去
@@ -171,7 +175,8 @@ def quiz_to_group(event):
             #df=df.drop(user_idx)
             #df.to_csv('cache.csv', index=False)
         else:
-            message=f"{username}さん不正解！"
+            #message=f"{username}さん不正解！"
+            message=f"不正解！"
             judge_message=TextSendMessage(text=message)
             messages.append(judge_message)
             next_idx=0

@@ -71,6 +71,7 @@ def quiz_to_user(event):
         status_message=TextSendMessage(text=message)
         messages.append(status_message)
         all_data=cur.execute(f"SELECT * FROM cache")
+        con.commit()
         message=""
         for d in all_data:
             message+=str(d)+"\n"
@@ -163,8 +164,8 @@ def quiz_to_group(event):
 
     if(status==2): #judge
         pass
-        ans=user_data[1]
-        hints=user_data[2:]
+        ans=session_data[3]
+        hints=session_data[4:]
         if(event.message.text==ans):
             message="正解！"
             judge_message=TextSendMessage(text=message)
@@ -256,7 +257,7 @@ def handle_message(event):
     #userid=profile.user_id
     message_type=event.source.type
 
-    userid=event.source.user_id
+    #userid=event.source.user_id
     
     if(message_type=="user"):
         messages=quiz_to_user(event)

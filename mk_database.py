@@ -6,7 +6,7 @@ if(__name__=="__main__"):
 
     # Create table
     cur.execute('''CREATE TABLE cache
-                (userid text primary key, ans text, hint1 text, hint2 text, hint3 text, hint4 text, hint5 text)''')
+                (userid text primary key, ans text, hint1 text, hint2 text, hint3 text, hint4 text)''')
 
     # Save (commit) the changes
     con.commit()

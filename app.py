@@ -143,7 +143,7 @@ def handle_message(event):
             con.commit()
             con.close()
         elif("作問:" in event.message.text):
-            title=event.message.text.split(":")[1]
+            title= "ジャマイカ" #event.message.text.split(":")[1]
             _,hints=quiz.generate_quiz(title)
             message="ヒント:"
             for hint in hints:

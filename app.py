@@ -16,6 +16,8 @@ import csv
 import random
 import pandas as pd
 import math
+import sqlite3
+import time
 
 # 軽量なウェブアプリケーションフレームワーク:Flask
 app = Flask(__name__)
@@ -49,14 +51,23 @@ def callback():
 # MessageEvent
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
+    #b=time.time()
     #profile = line_bot_api.get_profile(event.source.user_id)
     #userid=profile.user_id
     userid=event.source.user_id
-    answering=False
+    
 
-    df = pd.read_csv("cache.csv")
-    user_data=df[df['userid'] ==userid]
-    answering=len(user_data)>0
+    con = sqlite3.connect('cache.db')
+    cur = con.cursor()
+    #df = pd.read_csv("cache.csv")
+    #user_data=df[df['userid'] ==userid]
+    user_sql=cur.execute(f"SELECT * FROM cache WHERE userid = '{userid}'")
+    answering=False
+    for u in user_sql:
+        user_data=u  #tuple
+        answering=True
+
+    # answering=len(user_data)>0
 
     messages=[]
 
@@ -64,21 +75,27 @@ def handle_message(event):
         message=str(userid)+"\n"+str(answering)
         status_message=TextSendMessage(text=message)
         messages.append(status_message)
-        message=str(df.values.tolist())
+        all_data=cur.execute(f"SELECT * FROM cache")
+        message=""
+        for d in all_data:
+            message+=str(d)+"\n"
+        
         list_message=TextSendMessage(text=message)
         messages.append(list_message)
     elif(answering): #judge
-        question=user_data.values.tolist()[0]
-        ans=question[1]
-        hints=question[2:]
-        user_idx=user_data.index[0]
+        
+        ans=user_data[1]
+        hints=user_data[2:]
         if(event.message.text==ans):
             message="正解！"
             judge_message=TextSendMessage(text=message)
             messages.append(judge_message)
             #キャッシュを消去
-            df=df.drop(user_idx)
-            df.to_csv('cache.csv', index=False)
+            cur.execute(f"DELETE FROM cache WHERE userid='{userid}'")
+            con.commit()
+            con.close()
+            #df=df.drop(user_idx)
+            #df.to_csv('cache.csv', index=False)
         else:
             message="不正解！"
             judge_message=TextSendMessage(text=message)
@@ -86,13 +103,7 @@ def handle_message(event):
             next_idx=0
 
             for i,hint in enumerate(hints):
-                isnan=False
-                try:
-                    fhint=float(hint)
-                    isnan=math.isnan(fhint)
-                except ValueError:  #文字列の場合
-                    pass
-                if(isnan):
+                if(hint is None):
                     pass
                 else:
                     next_hint=hint
@@ -101,16 +112,17 @@ def handle_message(event):
                     message=f"次のヒントは\n{next_hint}"
                     hint_message=TextSendMessage(text=message)
                     messages.append(hint_message)
-
-                    #update data
-                    df.loc[user_idx,f"hint{next_idx+1}"]=math.nan
-                    df.to_csv('cache.csv', index=False)
+                    
+                    cur.execute(f"UPDATE cache SET hint{next_idx+1}=NULL WHERE userid='{userid}'")
+                    con.commit()
+                    con.close()
                     break
             else:  #all hints are nan
                 message=f"答えは{ans}でした！"
                 messages.append(TextSendMessage(text=message))
-                df=df.drop(user_idx)
-                df.to_csv('cache.csv', index=False)
+                cur.execute(f"DELETE FROM cache WHERE userid='{userid}'")
+                con.commit()
+                con.close()
             
 
     else:  #select question
@@ -127,17 +139,15 @@ def handle_message(event):
             message2="最初のヒントは\n"+question[1]
             messages.append(TextSendMessage(text=message2))
 
-            with open("cache.csv","a") as f:
-                writer = csv.writer(f)
-                to_write=[userid,question[0]]+question[2:]
-                writer.writerow(to_write)
-            
-
+            cur.execute(f"INSERT INTO cache VALUES ('{userid}','{question[0]}','{question[2]}','{question[3]}','{question[4]}','{question[5]}')")
+            con.commit()
+            con.close()
         else:
             message=f"受け取った入力は「{event.message.text}」\n"
             message+="「クイズ」と入力してね！"
             messages.append(TextSendMessage(text=message))
     
+    #messages.append(TextSendMessage(text=str(time.time()-b)))
     line_bot_api.reply_message(
         event.reply_token,
         messages

@@ -9,10 +9,8 @@ if(__name__=="__main__"):
                 (userid text primary key, ans text, hint1 text, hint2 text, hint3 text, hint4 text)''')
 
     cur.execute('''CREATE TABLE session
-                (groupid text primary key, status integer,  hints integer, ans text, hint1 text, hint2 text, hint3 text, hint4 text, hint5 text)''')
+                (groupid text primary key, ans text, hint1 text, hint2 text, hint3 text, hint4 text)''')
 
-    cur.execute('''CREATE TABLE users
-                (groupid text, userid text, answers integer, ans text)''')
 
     # Save (commit) the changes
     con.commit()

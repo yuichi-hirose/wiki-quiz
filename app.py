@@ -145,38 +145,33 @@ def quiz_to_group(event):
     profile = line_bot_api.get_profile(event.source.user_id)
     username=profile.display_name
     groupid=event.source.group_id
-
+    
     con = sqlite3.connect('cache.db')
     cur = con.cursor()
     #df = pd.read_csv("cache.csv")
     #user_data=df[df['userid'] ==userid]
-    #user_sql=cur.execute(f"SELECT * FROM cache WHERE userid = '{userid}'")
-    session_sql=cur.execute(f"SELECT * FROM session WHERE groupid = '{groupid}'")
-    
-    status=0  #status: 0 ->no session held, 1->gathering 2->matching
-    for s in session_sql:
-        session_data=s  #tuple
-        status=session_data[1]
 
-    # answering=len(user_data)>0
+    user_sql=cur.execute(f"SELECT * FROM session WHERE groupid = '{groupid}'")
+    answering=False
+    for u in user_sql:
+        user_data=u  #tuple
+        answering=True
 
-    messages=[]
-
-    if(status==2): #judge
-        pass
-        ans=session_data[3]
-        hints=session_data[4:]
+    if(answering): #judge
+        
+        ans=user_data[1]
+        hints=user_data[2:]
         if(event.message.text==ans):
-            message="正解！"
+            message=f"{username}さん正解！"
             judge_message=TextSendMessage(text=message)
             messages.append(judge_message)
             #キャッシュを消去
-            cur.execute(f"DELETE FROM cache WHERE userid='{userid}'")
+            cur.execute(f"DELETE FROM session WHERE groupid='{groupid}'")
             con.commit()
             #df=df.drop(user_idx)
             #df.to_csv('cache.csv', index=False)
         else:
-            message="不正解！"
+            message=f"{username}さん不正解！"
             judge_message=TextSendMessage(text=message)
             messages.append(judge_message)
             next_idx=0
@@ -192,59 +187,35 @@ def quiz_to_group(event):
                     hint_message=TextSendMessage(text=message)
                     messages.append(hint_message)
                     
-                    cur.execute(f"UPDATE cache SET hint{next_idx+1}=NULL WHERE userid='{userid}'")
+                    cur.execute(f"UPDATE session SET hint{next_idx+1}=NULL WHERE grouprid='{groupid}'")
                     con.commit()
                     break
             else:  #all hints are nan
                 message=f"答えは{ans}でした！"
                 messages.append(TextSendMessage(text=message))
-                cur.execute(f"DELETE FROM cache WHERE userid='{userid}'")
+                cur.execute(f"DELETE FROM session WHERE groupid='{groupid}'")
                 con.commit()
-    elif(status==1):
-        #boshuu
-        if(event.message.text=="参加"):
-            cur.execute(f"insert into users values ('{groupid}','{userid}',5,NULL) on conflict (groupid, userid) do nothing")
-            con.commit()
-            message=f"{username}さんを追加しました！\nこれで全員の場合「終了」と送信してください"
-            messages.append(TextSendMessage(text=message))
-        elif(event.message.text=="終了"):  #set status to 2 and give hint
-            cur.execute(f"update session set status=2 where groupid='{groupid}'")
-            
-            message=f"参加募集を締め切りました！"
-            messages.append(TextSendMessage(text=message))
-            res_list=cur.execute(f"select hint1 from session where groupid='{groupid}'")
-            cur.execute(f"update session set hints=hints-1 where groupid='{groupid}'")
-            hint=""
-            for r in res_list:  #実際には一度しかループしないはず
-                hint=r[0]
-            message="最初のヒントは\n"+hint
-            messages.append(TextSendMessage(text=message))
-            con.commit()
-        else:
-            message=f"参加して！"
-            messages.append(TextSendMessage(text=message))
-    elif(status==0):  #select question
+    else:  #select question
         if(event.message.text=="クイズ"):
-            message1="クイズ大会！"
+            message1="問題"
             messages.append(TextSendMessage(text=message1))
             #q,hints=quiz.generate_quiz("織田信長")
             with open("quiz_data.csv","r") as f:
                 reader = csv.reader(f)
                 list_reader=list(reader)[1:]
                 idx=random.randint(0,len(list_reader)-1)
-                question=list_reader[idx]  #[ans,hint1,hint2,...]
+                question=list_reader[idx]
             
-            #message2="最初のヒントは\n"+question[1]
-            #messages.append(TextSendMessage(text=message2))
-
-            cur.execute(f"INSERT INTO session VALUES ('{groupid}',1,5,'{question[0]}','{question[1]}','{question[2]}','{question[3]}','{question[4]}','{question[5]}')")
-            con.commit()
-            message2="「参加」と送信してください！"
+            message2="最初のヒントは\n"+question[1]
             messages.append(TextSendMessage(text=message2))
+
+            cur.execute(f"INSERT INTO session VALUES ('{groupid}','{question[0]}','{question[2]}','{question[3]}','{question[4]}','{question[5]}')")
+            con.commit()
         else:
-            message=f"受け取った入力は「{event.message.text}」\n"
-            message+="「クイズ」と入力してね！"
-            messages.append(TextSendMessage(text=message))
+            #message=f"受け取った入力は「{event.message.text}」\n"
+            #message+="「クイズ」と入力してね！"
+            #messages.append(TextSendMessage(text=message))
+            pass
     con.close()
     return messages
 
@@ -264,6 +235,7 @@ def handle_message(event):
     elif(message_type=="group"):
         messages=quiz_to_group(event)
     
+    if(len(messages)==0):return 0
     #messages.append(TextSendMessage(text=str(time.time()-b)))
     line_bot_api.reply_message(
         event.reply_token,

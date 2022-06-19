@@ -7,6 +7,7 @@ import json
 import asyncio
 import requests
 import re
+import csv
 
 import time
 from wikipedia.exceptions import PageError, DisambiguationError
@@ -188,9 +189,14 @@ def generate_quiz(title):
             shuffle_hints.append(hints[add_int])
     print("All int list:", hints)
     print("hint list:", shuffle_hints)
-    return title,list(hints[:5])
+    return title,list(shuffle_hints)
 
 if __name__ == "__main__":
     title = input(">> ")
     b=time.time()
-    generate_quiz(title)
+    x , lists = generate_quiz(title)
+    result = list([title])
+    result.extend(lists)
+    with open('wikiQuizData.csv', 'a') as f:
+        writer = csv.writer(f)
+        writer.writerow(result)

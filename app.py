@@ -133,6 +133,13 @@ def quiz_to_user(event):
 
             cur.execute(f"INSERT INTO cache VALUES ('{userid}','{question[0]}','{question[2]}','{question[3]}','{question[4]}','{question[5]}')")
             con.commit()
+        elif("作問:" in event.message.text):
+            title=event.message.text.split(":")[1]
+            _,hints=quiz.generate_quiz(title)
+            message=""
+            for hint in hints:
+                message+=hint+"\n"
+            messages.append(TextSendMessage(text=message))
         else:
             message=f"受け取った入力は「{event.message.text}」\n"
             message+="「クイズ」と入力してね！"
@@ -141,7 +148,6 @@ def quiz_to_user(event):
     return messages
 
 def quiz_to_group(event):
-    messages=[]
     userid=event.source.user_id
     profile = line_bot_api.get_profile(event.source.user_id)
     username=profile.display_name
@@ -159,6 +165,8 @@ def quiz_to_group(event):
     for u in user_sql:
         user_data=u  #tuple
         answering=True
+
+    messages=[]
 
     if(answering): #judge
         
@@ -234,18 +242,18 @@ def handle_message(event):
     message_type=event.source.type
 
     #userid=event.source.user_id
-    
+    messages=[]
     if(message_type=="user"):
         messages=quiz_to_user(event)
     elif(message_type=="group"):
         messages=quiz_to_group(event)
     
-    if(len(messages)==0):return 0
-    #messages.append(TextSendMessage(text=str(time.time()-b)))
-    line_bot_api.reply_message(
-        event.reply_token,
-        messages
-    )
+    if(len(messages)>0):
+        #messages.append(TextSendMessage(text=str(time.time()-b)))
+        line_bot_api.reply_message(
+            event.reply_token,
+            messages
+        )
 
 
 if __name__ == "__main__":

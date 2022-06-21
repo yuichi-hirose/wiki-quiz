@@ -1,7 +1,7 @@
 # wiki-quiz
 at 技育CAMP ハッカソンvol.4 
 
-with [YutoUshijima](https://github.com/YutoUshijima) and [Suguruiwa](https://github.com/Suguruiwa)
+with [YutoUshijima](https://github.com/YutoUshijima) and [Suguruiwa](https://github.com/Suguruiwa) (and Hokuto Wakita)
 
 [発表スライド](https://docs.google.com/presentation/d/19LF03cryUMJPeZe5N9_BNGkA0YOcwgoTyjFMTiKr6-Y/edit#slide=id.p) 
 # Content
